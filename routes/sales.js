@@ -101,4 +101,27 @@ router.get("/:inv_id", async (req, res) => {
   }
 });
 
+// GET /api/sales/today
+router.get("/today-sales", async (req, res) => {
+  try {
+    const today = new Date();
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+
+    const [rows] = await db.query(
+      `SELECT SUM(inv_total) AS today_total
+       FROM invoice_sales
+       WHERE created_at BETWEEN ? AND ?`,
+      [startOfDay, endOfDay]
+    );
+
+    const today_total = Number(rows[0].today_total) || 0;
+    res.json({ today_total });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 module.exports = router;
